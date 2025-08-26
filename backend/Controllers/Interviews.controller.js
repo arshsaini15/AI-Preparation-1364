@@ -121,33 +121,33 @@ const fetchInterviewsController = async(req, res) => {
 
 const startInterviewController = async (req, res) => {
   try {
-    const { userId, topic, difficulty, date } = req.body;
+      const { userId, topic, difficulty, date } = req.body;
 
-    if (!userId || !topic || !difficulty) {
-      return res.status(400).json({ error: 'userId, topic, and difficulty are required' });
-    }
+      if (!userId || !topic || !difficulty) {
+        return res.status(400).json({ error: 'userId, topic, and difficulty are required' })
+      }
 
-    // Save interview in MongoDB
-    const interview = new Interview({ userId, topic, difficulty, date });
-    await interview.save();
+      // Save interview in MongoDB
+      const interview = new Interview({ userId, topic, difficulty, date });
+      await interview.save();
 
-    let aiQuestion = 'Sample AI question';
-    let aiQuestionId = null;
+      let aiQuestion = 'Sample AI question';
+      let aiQuestionId = null;
 
-    try {
-      const chatCompletion = await groq.chat.completions.create({
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful assistant specialized in generating educational questions.',
-          },
-          {
-            role: 'user',
-            content: `Generate 1 question about ${topic} with difficulty ${difficulty}.`,
-          },
-        ],
-        model: 'llama3-8b-8192', // Or another model you want to use
-      });
+      try {
+        const chatCompletion = await groq.chat.completions.create({
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a helpful assistant specialized in generating educational questions.',
+            },
+            {
+              role: 'user',
+              content: `Generate 1 theory question without multiple choice questions about ${topic} with difficulty ${difficulty}.`,
+            },
+          ],
+          model: 'llama3-8b-8192',
+      })
 
       aiQuestion = chatCompletion.choices[0]?.message?.content || aiQuestion;
 
@@ -176,12 +176,16 @@ const startInterviewController = async (req, res) => {
 
 const answerInterviewController = async (req, res) => {
   try {
-    const { userId, questionId, answer, topic, difficulty } = req.body;
+      const { userId, questionId, answer, topic, difficulty } = req.body
 
-    const previousQuestion = await Question.findById(questionId);
-    if (!previousQuestion) {
-      return res.status(404).json({ error: 'Question not found' });
-    }
+      if(!userId || !questionId || !answer || !topic || !difficulty) {
+        return res.status(400).json({ error: 'userId, questionId, answer, topic, and difficulty are required' })
+      }
+
+      const previousQuestion = await Question.findById(questionId)
+      if (!previousQuestion) {
+        return res.status(404).json({ error: 'Question not found' })
+      }
 
     let aiResponseText = 'No feedback provided';
     try {
@@ -198,31 +202,29 @@ const answerInterviewController = async (req, res) => {
           },
         ],
         model: 'llama3-8b-8192',
+      })
+
+        aiResponseText = chatCompletion.choices[0]?.message?.content || aiResponseText;
+        
+      } catch (error) {
+        console.error('Groq API failed:', error.message);
+      }
+
+      const savedAnswer = new Answer({
+        user_id: userId,
+        question_id: questionId,
+        user_response: answer,
+        feedback: aiResponseText,
+        score: null,
       });
+      await savedAnswer.save();
 
-      aiResponseText = chatCompletion.choices[0]?.message?.content || aiResponseText;
-    } catch (error) {
-      console.error('Groq API failed:', error.message);
-    }
-
-    // You can parse aiResponseText to extract feedback, score, nextQuestion if needed
-    // For simplicity, save the raw text
-    const savedAnswer = new Answer({
-      user_id: userId,
-      question_id: questionId,
-      user_response: answer,
-      feedback: aiResponseText,
-      score: null, // Optional: parse from aiResponseText
-    });
-    await savedAnswer.save();
-
-    // Optionally generate next question
-    const nextQuestion = new Question({
-      user_id: userId,
-      question_text: aiResponseText, // Or extract next question from text
-      generated_by: 'ai',
-    });
-    await nextQuestion.save();
+      const nextQuestion = new Question({
+          user_id: userId,
+          question_text: aiResponseText,
+          generated_by: 'ai',
+      })
+      await nextQuestion.save();
 
     res.json({
       feedback: aiResponseText,

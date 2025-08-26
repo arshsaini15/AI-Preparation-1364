@@ -8,14 +8,15 @@ const Interview = () => {
     const [input, setInput] = useState('')
     const [currentQuestionId, setCurrentQuestionId] = useState(null)
     const [loading, setLoading] = useState(true)
-    
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const userId = user?.id;
 
     const location = useLocation();
     const { topic, difficulty } = location.state || {};
-    const token = localStorage.getItem('token')
 
+
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const userId = user?.id;
+
+    const token = localStorage.getItem('token')
 
     const startInterview = async () => {
         try {
@@ -29,7 +30,7 @@ const Interview = () => {
                 },
                 {
                     headers: {
-                    Authorization: `Bearer ${token}`,
+                        Authorization: `Bearer ${token}`,
                     },
                 }
             );
@@ -46,7 +47,7 @@ const Interview = () => {
     const sendAnswer = async () => {
         if (!input.trim()) return
         try {
-            const res = await axios.post('/api/interview/answer', {
+            const res = await axios.post('http://localhost:8000/api/interview/answer', {
                 userId,
                 questionId: currentQuestionId,
                 answer: input,
@@ -66,6 +67,13 @@ const Interview = () => {
         }
     };
 
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendAnswer();
+        }
+    };
+
     useEffect(() => {
         startInterview();
     }, []);
@@ -74,26 +82,38 @@ const Interview = () => {
         <div className="interview-container">
             <h2 className="interview-title">Mock Interview</h2>
             {loading ? (
-                <p>Loading your first question...</p>
+                <div className="loading-container">
+                    <p>Loading your first question...</p>
+                </div>
             ) : (
                 <>
                     <div className="chat-box">
                         {chat.map((c, i) => (
                             <div key={i} className="chat-message">
-                                {c.user && <p className="user-msg"><strong>You:</strong> {c.user}</p>}
-                                {c.ai && <p className="ai-msg"><strong>AI:</strong> {c.ai}</p>}
+                                {c.user && <div className="user-msg"><strong>You:</strong> {c.user}</div>}
+                                {c.ai && <div className="ai-msg"><strong>AI:</strong> {c.ai}</div>}
                             </div>
                         ))}
                     </div>
 
-                    <div className="input-box">
-                        <input
-                            className="chat-input"
-                            value={input}
-                            onChange={(e) => setInput(e.target.value)}
-                            placeholder="Type your answer..."
-                        />
-                        <button className="submit-btn" onClick={sendAnswer}>Submit</button>
+                    <div className="input-container">
+                        <div className="input-box">
+                            <textarea
+                                className="chat-input"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyPress={handleKeyPress}
+                                placeholder="Type your answer here... (Press Enter to send, Shift+Enter for new line)"
+                                rows="3"
+                            />
+                        </div>
+                        <button 
+                            className="submit-btn" 
+                            onClick={sendAnswer}
+                            disabled={!input.trim()}
+                        >
+                            Send
+                        </button>
                     </div>
                 </>
             )}

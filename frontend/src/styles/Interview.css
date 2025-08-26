@@ -1,6 +1,6 @@
 /* Container */
 .interview-container {
-    max-width: 600px;
+    max-width: 700px;
     margin: 40px auto;
     padding: 20px;
     background: #f8f9fa;
@@ -17,79 +17,142 @@
     color: #333;
 }
 
-/* Start Button */
-.start-btn {
-    display: block;
-    width: 100%;
-    background: #007bff;
-    color: white;
-    border: none;
-    padding: 12px;
-    border-radius: 8px;
-    font-size: 16px;
-    margin-bottom: 15px;
-    cursor: pointer;
-    transition: 0.3s ease;
-}
-
-.start-btn:hover {
-    background: #0056b3;
+/* Loading */
+.loading-container {
+    text-align: center;
+    padding: 40px;
+    color: #666;
 }
 
 /* Chat Box */
 .chat-box {
     background: #ffffff;
-    padding: 15px;
+    padding: 20px;
     border-radius: 8px;
-    height: 300px;
+    height: 400px;
     overflow-y: auto;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
     border: 1px solid #ddd;
 }
 
 /* Chat Messages */
 .chat-message {
-    margin-bottom: 10px;
+    margin-bottom: 15px;
 }
 
+/* User Message */
 .user-msg {
     background: #e1f7d5;
-    padding: 8px 12px;
-    border-radius: 8px;
+    padding: 12px 16px;
+    border-radius: 10px;
     margin: 5px 0;
+    font-size: 16px;
+    line-height: 1.5;
+    word-wrap: break-word;
 }
 
+/* AI Message */
 .ai-msg {
     background: #f1f0f0;
-    padding: 8px 12px;
-    border-radius: 8px;
+    padding: 12px 16px;
+    border-radius: 10px;
     margin: 5px 0;
+    font-size: 16px;
+    line-height: 1.6;
+    white-space: pre-line;
+    word-wrap: break-word;
+}
+
+/* Input Container */
+.input-container {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
 }
 
 /* Input Box */
 .input-box {
-    display: flex;
-    gap: 10px;
-}
-
-.chat-input {
     flex: 1;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    font-size: 16px;
+    min-width: 0; /* Allows flex item to shrink below content size */
 }
 
+/* Chat Input - Now a textarea */
+.chat-input {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 2px solid #ddd;
+    font-size: 16px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    max-height: 150px;
+    line-height: 1.4;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+.chat-input:focus {
+    outline: none;
+    border-color: #28a745;
+    box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+}
+
+/* Submit Button */
 .submit-btn {
     background: #28a745;
     color: white;
     border: none;
-    padding: 10px 16px;
+    padding: 12px 20px;
     border-radius: 8px;
     cursor: pointer;
-    transition: 0.3s ease;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    font-weight: 600;
+    width: 100px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0; /* Prevents button from shrinking */
 }
 
-.submit-btn:hover {
+.submit-btn:hover:not(:disabled) {
     background: #218838;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.submit-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .interview-container {
+        margin: 20px;
+        padding: 15px;
+    }
+    
+    .input-container {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        height: 50px;
+    }
+    
+    .chat-box {
+        height: 300px;
+    }
 }

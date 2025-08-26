@@ -10,16 +10,16 @@ const Navbar = () => {
   const [username, setUsername] = useState(initialUsername);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    setUsername("Guest");
-    navigate("/signin");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setUsername("Guest");
+      navigate("/signin");
   };
 
   return (
     <nav className="navbar">
       <div className="navbar-left">
-        <h2>Welcome, {username}</h2>
+        <h2 onClick={() => navigate('/dashboard')}>Welcome, {username}</h2>
       </div>
       <div className="navbar-right">
         <Link to="/interviews" className="nav-link">
