@@ -1,0 +1,95 @@
+/* Container */
+.interview-container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: 'Arial', sans-serif;
+}
+
+/* Title */
+.interview-title {
+    text-align: center;
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+/* Start Button */
+.start-btn {
+    display: block;
+    width: 100%;
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.start-btn:hover {
+    background: #0056b3;
+}
+
+/* Chat Box */
+.chat-box {
+    background: #ffffff;
+    padding: 15px;
+    border-radius: 8px;
+    height: 300px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+}
+
+/* Chat Messages */
+.chat-message {
+    margin-bottom: 10px;
+}
+
+.user-msg {
+    background: #e1f7d5;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin: 5px 0;
+}
+
+.ai-msg {
+    background: #f1f0f0;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin: 5px 0;
+}
+
+/* Input Box */
+.input-box {
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+.submit-btn {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.submit-btn:hover {
+    background: #218838;
+}

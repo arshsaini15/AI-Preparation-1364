@@ -7,7 +7,8 @@ const Signin = () => {
     const [formData, setFormData] = useState({
         email: "",
         password: ""
-    });
+    })
+
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
@@ -34,10 +35,9 @@ const Signin = () => {
                     id: user._id,
                     name: user.name,
                     email: user.email,
-                }));
+                }))
 
                 localStorage.setItem("token", token)
-
                 navigate("/dashboard")
             }
         } catch (err) {

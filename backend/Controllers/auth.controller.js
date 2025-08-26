@@ -3,41 +3,41 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const signinController = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password } = req.body
 
     if (!email || !password) {
-        const error = new Error("All fields are required");
-        error.statusCode = 400;
-        throw error;
+        const error = new Error("All fields are required")
+        error.statusCode = 400
+        throw error
     }
 
     try {
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email })
         if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ message: 'User not found' })
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(password, user.password)
         if (!isMatch) {
-            return res.status(401).json({ message: 'Invalid credentials' });
+            return res.status(401).json({ message: 'Invalid credentials' })
         }
 
         const generateToken = (userId) => {
             return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
                 expiresIn: process.env.JWT_EXPIRATION || '1d'
-            });
-        };
+            })
+        }
 
         res.status(200).json({
             message: "Login successful",
             user,
             token: generateToken(user._id)
-        });
+        })
     } catch (error) {
-        console.error('Error during sign-in:', error);
-        return res.status(500).json({ message: 'Internal server error' });
+        console.error('Error during sign-in:', error)
+        return res.status(500).json({ message: 'Internal server error' })
     }
-};
+}
 
 const registerUser = async (req, res, next) => {
   try {
@@ -87,7 +87,6 @@ const registerUser = async (req, res, next) => {
 
 const logoutController = (req, res) => {
     res.status(200).json({ message: "Logout successful" });
-};
-
+}
 
 module.exports = { signinController, registerUser, logoutController }

@@ -85,7 +85,12 @@ const Dashboard = () => {
 
       <div className="grid">
         {interviews.map((interview) => (
-          <div className="card" key={interview._id}>
+          <div className="card" key={interview._id} onClick={() => navigate(`/interviews/start`, {
+              state: {
+                topic: interview.topic,
+                difficulty: interview.difficulty
+              }
+            })}>
             <div className="row space">
               <h3 className="topic">{interview.topic || "Untitled"}</h3>
               <span className={`badge ${interview.difficulty?.toLowerCase() || ""}`}>
@@ -94,7 +99,7 @@ const Dashboard = () => {
             </div>
             <div className="muted">{formatDate(interview.date)}</div>
             <div className="actions">
-              <Link className="btn" to={`/interview/update/${interview._id}`}>
+              <Link className="btn" to={`/interviews/update/${interview._id}`}>
                   Edit
               </Link>
 
