@@ -3,8 +3,20 @@ const Interview = require('../Models/interview.models.js')
 const Question = require('../Models/questions.models.js')
 const Answer = require('../Models/answers.models.js')
 
-const groq = require('groq-js');
-const groqClient = groq({ apiKey: process.env.GROQ_API_KEY });
+const Groq = require('groq-sdk')
+
+const groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY,
+})
+
+const axios = require('axios')
+const https = require('https')
+
+const agent = new https.Agent({
+    rejectUnauthorized: true,
+    servername: 'api.groq.ai',
+    secureProtocol: 'TLSv1_2_method'
+})
 
 const createInterview = async (req, res, next) => {
     try {
@@ -112,39 +124,50 @@ const startInterviewController = async (req, res) => {
     const { userId, topic, difficulty, date } = req.body;
 
     if (!userId || !topic || !difficulty) {
-      return res.status(400).json({ error: "userId, topic, and difficulty are required" });
+      return res.status(400).json({ error: 'userId, topic, and difficulty are required' });
     }
 
     // Save interview in MongoDB
     const interview = new Interview({ userId, topic, difficulty, date });
     await interview.save();
 
-    let aiQuestion = "Sample AI question";
+    let aiQuestion = 'Sample AI question';
     let aiQuestionId = null;
 
     try {
-      // Use Groq SDK to generate question
-      const response = await groqClient.generateQuestion({ topic, difficulty });
-      aiQuestion = response.question;
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a helpful assistant specialized in generating educational questions.',
+          },
+          {
+            role: 'user',
+            content: `Generate 1 question about ${topic} with difficulty ${difficulty}.`,
+          },
+        ],
+        model: 'llama3-8b-8192', // Or another model you want to use
+      });
 
+      aiQuestion = chatCompletion.choices[0]?.message?.content || aiQuestion;
+
+      // Save generated question
       const question = new Question({
         user_id: userId,
         question_text: aiQuestion,
-        generated_by: 'ai'
+        generated_by: 'ai',
       });
       await question.save();
       aiQuestionId = question._id;
-
-    } catch (groqError) {
-      console.error("Groq API failed:", groqError.message);
+    } catch (error) {
+      console.error('Groq API failed:', error.message);
     }
 
     res.status(201).json({
       interviewId: interview._id,
       aiQuestion,
-      aiQuestionId
+      aiQuestionId,
     });
-
   } catch (error) {
     console.error('Error in startInterviewController:', error.message);
     res.status(500).json({ error: 'Failed to start interview' });
@@ -160,47 +183,56 @@ const answerInterviewController = async (req, res) => {
       return res.status(404).json({ error: 'Question not found' });
     }
 
-    // Use Groq SDK to evaluate answer
-    const aiResponse = await groqClient.evaluateAnswer({
-      question: previousQuestion.question_text,
-      answer,
-      topic,
-      difficulty
-    });
+    let aiResponseText = 'No feedback provided';
+    try {
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert interviewer and evaluator.',
+          },
+          {
+            role: 'user',
+            content: `Evaluate the following answer to the question: "${previousQuestion.question_text}".
+            Difficulty: ${difficulty}. Answer: ${answer}. Provide feedback, score out of 10, and suggest the next question.`,
+          },
+        ],
+        model: 'llama3-8b-8192',
+      });
 
-    const feedback = aiResponse.feedback || "No feedback provided";
-    const score = aiResponse.score || 0;
-    const nextQuestionText = aiResponse.nextQuestion || "No next question provided";
+      aiResponseText = chatCompletion.choices[0]?.message?.content || aiResponseText;
+    } catch (error) {
+      console.error('Groq API failed:', error.message);
+    }
 
-    // Save user's answer
+    // You can parse aiResponseText to extract feedback, score, nextQuestion if needed
+    // For simplicity, save the raw text
     const savedAnswer = new Answer({
       user_id: userId,
       question_id: questionId,
       user_response: answer,
-      score,
-      feedback
+      feedback: aiResponseText,
+      score: null, // Optional: parse from aiResponseText
     });
     await savedAnswer.save();
 
-    // Save next AI-generated question
-    const aiQuestion = new Question({
+    // Optionally generate next question
+    const nextQuestion = new Question({
       user_id: userId,
-      question_text: nextQuestionText,
-      generated_by: 'ai'
+      question_text: aiResponseText, // Or extract next question from text
+      generated_by: 'ai',
     });
-    await aiQuestion.save();
+    await nextQuestion.save();
 
     res.json({
-      feedback,
-      score,
-      aiQuestion: nextQuestionText,
-      aiQuestionId: aiQuestion._id
+      feedback: aiResponseText,
+      aiQuestion: aiResponseText,
+      aiQuestionId: nextQuestion._id,
     });
-
   } catch (error) {
     console.error('Error in answerInterviewController:', error.message);
     res.status(500).json({ error: 'Failed to process answer' });
   }
-}
+};
 
 module.exports = {createInterview, updateInterviewController, deleteInterviewController, fetchInterviewsController, startInterviewController, answerInterviewController }
